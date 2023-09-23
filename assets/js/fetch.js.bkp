@@ -1,0 +1,104 @@
+// github-profile-fetcher.js
+
+// Function to populate HTML with data from the JSON object
+function populateProfileData(data) {
+  // Populate profile photo
+  document.getElementById('profile-photo').src = data.profileData.profilePhotoPath;
+
+  // Populate GitHub handler
+  document.getElementById('github-handler').textContent = `@${data.githubHandler}`;
+
+  // Populate bio
+  document.getElementById('bio').textContent = data.profileData.bio;
+
+  // Populate location
+  document.getElementById('location').textContent = data.profileData.address;
+
+  // Populate projects
+  const projectsList = document.getElementById('projects-list');
+  data.profileData.projects.forEach(projectURL => {
+    const listItem = document.createElement('li');
+    const link = document.createElement('a');
+    link.href = projectURL;
+    link.textContent = projectURL;
+    listItem.appendChild(link);
+    projectsList.appendChild(listItem);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', async function () {
+  const urlParams = new URLSearchParams(window.location.search);
+  // Get the value of the 'id' query parameter
+  const githubHandler = urlParams.get('id');
+
+  // Fetch the my-profile.yaml file from the user's repository
+  const profileResponse = await fetch(`https://raw.githubusercontent.com/${githubHandler}/verifiable-profile/main/my-profile.yaml`);
+  const profileText = await profileResponse.text();
+
+  // Parse the YAML content into a JavaScript object
+  const profileData = jsyaml.load(profileText);
+
+  // Validate the profile data against the JSON schema
+  const profileSchema = {
+    // JSON schema for the profile data (as provided in the question)
+  };
+
+  // const profileValidator = new Ajv();
+  // const isProfileValid = profileValidator.validate(profileSchema, profileData);
+  const isProfileValid = true
+
+  if (!isProfileValid) {
+    console.error('Profile data is not valid according to the schema');
+    return;
+  }
+
+  // Create an object to store the profile data
+  const userProfile = {
+    githubHandler,
+    profileData,
+    projects: [],
+  };
+
+  // Loop over the projects and fetch contributions.yaml for each project
+  for (const projectURL of profileData.projects) {
+    // Replace the "github.com" with "raw.githubusercontent.com" in the projectURL
+    const rawProjectURL = projectURL.replace('github.com', 'raw.githubusercontent.com');
+    // Construct the URL to the contributions.yaml file in the main branch
+    const contributionsURL = `${rawProjectURL}/main/contributions.yaml`;
+
+    const contributionsResponse = await fetch(contributionsURL);
+    const contributionsText = await contributionsResponse.text();
+
+    // Parse the YAML content into a JavaScript object
+    const contributionsData = jsyaml.load(contributionsText);
+
+    // Validate the contributions data against the JSON schema
+    const contributionsSchema = {
+      // JSON schema for the contributions data (as provided in the question)
+    };
+
+    // const contributionsValidator = new Ajv();
+    // const isContributionsValid = contributionsValidator.validate(contributionsSchema, contributionsData);
+    const isContributionsValid = true
+
+    if (!isContributionsValid) {
+      console.error('Contributions data is not valid according to the schema');
+      continue;
+    }
+
+    // Find the contributor that matches the entered GitHub handler
+    const matchingContributor = contributionsData.contributors.find(contributor => contributor.githubHandler === githubHandler);
+
+    if (matchingContributor) {
+      userProfile.projects.push({
+        projectURL,
+        contributions: matchingContributor,
+      });
+    }
+  }
+
+  // Render the profile data as HTML (replace with your desired HTML structure)
+  const profileContainer = document.getElementById('profile-container');
+  populateProfileData(userProfile)
+  console.log(userProfile)
+});

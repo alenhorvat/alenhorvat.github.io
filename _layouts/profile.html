@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% include head-profile.html %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ajv/8.1.0/ajv7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.14.1/js-yaml.min.js"></script>
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-info">
+            <h1 style="font-size: 24px; max-width: 200px;">My Verifiable Portfolio</h1>
+        </div>
+        <div class="header-bar">
+            <center>
+                <div class="bar">
+                    <input id="github-handler" class="searchbar" type="text" title="Search" required>
+                    <a href="#"> </a>
+                </div>
+            </center>
+        </div>
+    </div>
+    <br>
+    <hr>
+
+    <div class="wrapper">
+        <div id="profile-container">
+        </div>
+    </div>
+
+    <footer class="wrapper-footer">
+        {% include footer.html %}
+    </footer>
+    <script src="{{ site.baseurl }}/assets/js/fetch.js"></script>
+    <script>
+        // Function to perform the search action
+        function performSearch() {
+            // Get the value from the input field
+            const githubHandler = document.getElementById('github-handler').value;
+
+            // Construct the URL with the query parameter
+            const profileURL = `/profile?id=${githubHandler}`;
+
+            // Navigate to the profile subpage
+            window.location.href = profileURL;
+        }
+
+        // Add an event listener to the "Profile Search" button (click event)
+        document.getElementById('search-button').addEventListener('click', function () {
+            performSearch();
+        });
+
+        // Add an event listener to the input field (Enter key press event)
+        document.getElementById('github-handler').addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                // Prevent the default form submission behavior
+                event.preventDefault();
+                performSearch();
+            }
+        });
+    </script>
+
+</body>
+
+</html>
